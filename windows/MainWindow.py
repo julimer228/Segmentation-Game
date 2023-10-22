@@ -9,29 +9,24 @@ from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import QSize, Qt
 import glob
 from windows.SplashScreen import SplashScreen
+from windows.Help import Help
 
 
 class MainWindow(QWidget):
     """A class representing the main window"""    
     curr_idx = 0
-    
-    def show_splash_screen(self, config_path):
-        config = configparser.ConfigParser()
-        config.read(config_path)
-        splash = SplashScreen()
-        splash.show_splash_screen(config)
-        return
         
-    def set_up(self, config_path):
+    def set_up(self, config):
         """Set up the main window and images"""
         
         # load config and images
-        config = configparser.ConfigParser()
-        config.read(config_path)
         self._load_images(config)
-        
         self.setWindowTitle(config['DEFAULT']['Title'])
-        self.setWindowIcon(QtGui.QIcon(config['DEFAULT']['Icon']))
+        self.config = config
+        
+        app_icon = QtGui.QIcon()
+        app_icon.addFile(config['DEFAULT']['Icon'])
+        self.setWindowIcon(app_icon)
         
         self.left_image = QPixmap(self.images_list[self.curr_idx])
         self.right_image = QPixmap(self.overlays_list[self.curr_idx])
@@ -44,14 +39,14 @@ class MainWindow(QWidget):
         self.label_left = QLabel()
         self.label_left.setPixmap(self.left_image)
         
-        self.grid.addWidget(self.label_left,1,1, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.grid.addWidget(self.label_right,1,3, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.grid.addWidget(self.label_left,1,1, alignment=Qt.AlignmentFlag.AlignJustify)
+        self.grid.addWidget(self.label_right,1,2, alignment=Qt.AlignmentFlag.AlignJustify)
         
         self.prevBtn = QPushButton(
             icon=QtGui.QIcon(config['DEFAULT']['icon-prev']),
             parent=self
         )
-        self.prevBtn.setFixedSize(100, 60)
+        self.prevBtn.setFixedSize(60, 60)
         self.prevBtn.setIconSize(QSize(80, 40))
         self.prevBtn.clicked.connect(self._set_previous_image)
         
@@ -59,15 +54,34 @@ class MainWindow(QWidget):
             icon=QtGui.QIcon(config['DEFAULT']['icon-next']),
             parent=self,
         )
-        self.nextBtn.setFixedSize(100, 60)
+        self.nextBtn.setFixedSize(60, 60)
         self.nextBtn.setIconSize(QSize(80, 40))  
         self.nextBtn.clicked.connect(self._set_next_image)
         
-        self.buttons = QHBoxLayout()
-        self.buttons.addWidget(self.prevBtn)
-        self.buttons.addWidget(self.nextBtn)
+        self.resetBtn = QPushButton(
+            icon=QtGui.QIcon(config['DEFAULT']['icon-reset']),
+            parent=self,
+        )
+        self.resetBtn.setFixedSize(60, 60)
+        self.resetBtn.setIconSize(QSize(80, 40))  
+        self.resetBtn.clicked.connect(self._reset)
         
-        self.grid.addLayout(self.buttons,1,2,alignment=Qt.AlignmentFlag.AlignCenter)
+        self.helpBtn = QPushButton(
+            icon=QtGui.QIcon(config['DEFAULT']['icon-help']),
+            parent=self,
+        )
+        self.helpBtn.setFixedSize(60, 60)
+        self.helpBtn.setIconSize(QSize(80, 40))  
+        self.helpBtn.clicked.connect(self._display_help)
+        self.help = Help(self.config)
+        
+        self.buttons = QGridLayout()
+        self.buttons.addWidget(self.prevBtn,1,1)
+        self.buttons.addWidget(self.nextBtn,1,2)
+        self.buttons.addWidget(self.resetBtn,2,1)
+        self.buttons.addWidget(self.helpBtn,2,2)
+        
+        self.grid.addLayout(self.buttons,2,1,alignment=Qt.AlignmentFlag.AlignCenter)
         
         self.setLayout(self.grid)
         self.setGeometry(0,0,int(config['DEFAULT']['size_x']),int(config['DEFAULT']['size_y']))
@@ -86,12 +100,13 @@ class MainWindow(QWidget):
         return
         
         
-    def restart(self):
+    def _reset(self):
         self.curr_idx=0
         self.left_image.swap(QPixmap(self.images_list[self.curr_idx]))
         self.right_image.swap(QPixmap(self.overlays_list[self.curr_idx]))
         self.current_label = self.labels_list[self.curr_idx]
-        self.show()
+        self.label_right.setPixmap(self.right_image)
+        self.label_left.setPixmap(self.left_image)
         return
     
     def _set_previous_image(self):
@@ -116,6 +131,10 @@ class MainWindow(QWidget):
         self.label_right.setPixmap(self.right_image)
         self.label_left.setPixmap(self.left_image)
         self.current_label = self.labels_list[self.curr_idx]
+        return
+    
+    def _display_help(self):
+        self.help.display_help()
         return
     
     

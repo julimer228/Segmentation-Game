@@ -8,7 +8,8 @@ import configparser
 def main():
     app = QApplication(sys.argv)
     game = MainWindow()
-    game.set_up()
+    game.show_splash_screen("config.ini")
+    game.set_up("config.ini")
     sys.exit(app.exec())
 
 if __name__ == '__main__':

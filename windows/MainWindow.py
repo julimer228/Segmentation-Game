@@ -15,6 +15,7 @@ from windows.Help import Help
 class MainWindow(QWidget):
     """A class representing the main window"""    
     curr_idx = 0
+    hide_img = True
         
     def set_up(self, config):
         """Set up the main window and images"""
@@ -35,6 +36,7 @@ class MainWindow(QWidget):
         self.grid = QGridLayout()
         self.label_right = QLabel()
         self.label_right.setPixmap(self.right_image)
+        self.label_right.hide()
         
         self.label_left = QLabel()
         self.label_left.setPixmap(self.left_image)
@@ -75,11 +77,30 @@ class MainWindow(QWidget):
         self.helpBtn.clicked.connect(self._display_help)
         self.help = Help(self.config)
         
+        self.showBtn = QPushButton(
+            icon=QtGui.QIcon(config['DEFAULT']['icon-show']),
+            parent=self,
+        )
+        self.showBtn.setFixedSize(60, 60)
+        self.showBtn.setIconSize(QSize(80, 40))  
+        self.showBtn.clicked.connect(self._display_overlay)
+        
+        self.doneBtn = QPushButton(
+            icon=QtGui.QIcon(config['DEFAULT']['icon-done']),
+            parent=self,
+        )
+        self.doneBtn.setFixedSize(60, 60)
+        self.doneBtn.setIconSize(QSize(80, 40))  
+        self.doneBtn.clicked.connect(self._done_button_pressed)
+
+        
         self.buttons = QGridLayout()
         self.buttons.addWidget(self.prevBtn,1,1)
         self.buttons.addWidget(self.nextBtn,1,2)
         self.buttons.addWidget(self.resetBtn,2,1)
         self.buttons.addWidget(self.helpBtn,2,2)
+        self.buttons.addWidget(self.showBtn,2,3)
+        self.buttons.addWidget(self.doneBtn,1,3)
         
         self.grid.addLayout(self.buttons,2,1,alignment=Qt.AlignmentFlag.AlignCenter)
         
@@ -101,6 +122,14 @@ class MainWindow(QWidget):
         
         
     def _reset(self):
+        self.nextBtn.setEnabled(True)
+        self.prevBtn.setEnabled(True)
+        self.showBtn.setEnabled(True)
+        
+        if ~self.hide_img:
+            self.label_right.hide()
+            self.hide_img=True
+        
         self.curr_idx=0
         self.left_image.swap(QPixmap(self.images_list[self.curr_idx]))
         self.right_image.swap(QPixmap(self.overlays_list[self.curr_idx]))
@@ -137,7 +166,24 @@ class MainWindow(QWidget):
         self.help.display_help()
         return
     
+    def _display_overlay(self):
+        if self.hide_img:
+            self.label_right.show()
+            self.hide_img=False
+        else:
+            self.label_right.hide()
+            self.hide_img=True
     
+    def _done_button_pressed(self):
+        if self.hide_img:
+            self.label_right.show()
+            self.hide_img=False
+        
+        self.nextBtn.setEnabled(False)
+        self.prevBtn.setEnabled(False)
+        self.showBtn.setEnabled(False)
+        
+        return
     
     def exit(self):
         pass

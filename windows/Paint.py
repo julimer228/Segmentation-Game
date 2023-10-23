@@ -7,5 +7,5 @@ from PyQt6 import QtGui
 import configparser
 from PyQt6.QtGui import QPixmap
 
-class Image(QPixmap):
+class Paint(QPixmap):
     

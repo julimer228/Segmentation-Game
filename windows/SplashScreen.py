@@ -11,6 +11,7 @@ class SplashScreen:
         step = 0.05
         self.splash.setWindowOpacity(alpha)
         self.splash.show()
+        time.sleep(1)
         while alpha > 0:
             self.splash.setWindowOpacity(alpha)
             time.sleep(step)
